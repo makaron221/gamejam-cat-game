@@ -52,10 +52,11 @@ class Game
 			window.draw(text);
 		}
 		
-		int handle_menu_buttons()//0-none, 1-start, 2-credits
+		int handle_menu_buttons(int stage)//0-none, 1-start, 2-credits
 		{
 			Vector2f mouse_pos = window.mapPixelToCoords(Mouse::getPosition(window));
 			if (mouse_pos.x>410 && mouse_pos.x<1510 && mouse_pos.y>290 && mouse_pos.y<490 && Mouse::isButtonPressed(Mouse::Left)) return 1;
+			if (mouse_pos.x>410 && mouse_pos.x<1510 && mouse_pos.y>590 && mouse_pos.y<790 && Mouse::isButtonPressed(Mouse::Left) || stage==2) return 2;
 			return 0;
 		}
 	
@@ -90,12 +91,15 @@ class Game
 				menu_buttons();
 				}
 				else if (stage==1) return;
-				else//credits
-				{}
+				else
+				{
+					window.clear();
+					menu_bg();
+				}
 				
 				window.display();
 				
-				stage = handle_menu_buttons();
+				stage = handle_menu_buttons(stage);
 			}
 		}
 };
