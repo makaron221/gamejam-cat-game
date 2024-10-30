@@ -1,6 +1,7 @@
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
+#include <vector>
 
 using namespace sf;
 
@@ -59,6 +60,11 @@ class Game
 			if (mouse_pos.x>410 && mouse_pos.x<1510 && mouse_pos.y>590 && mouse_pos.y<790 && Mouse::isButtonPressed(Mouse::Left) || stage==2) return 2;
 			return 0;
 		}
+		
+		void cat_gravity(vector<int[4]> surfaces, int sprite_height)//[0]-x1 [1] y1 [2]-x2 [3] y2
+		{
+			
+		}
 	
 	public:
 		RenderWindow window;
@@ -70,6 +76,10 @@ class Game
 			twoodLight.loadFromFile("sprites/woodTexture.png");
 			twoodDarkLong.loadFromFile("sprites/Wooden Planks cut long.png");
 			font.loadFromFile("fonts/Minimal3x5.ttf");
+			
+			RectangleShape player(Vector2f(50, 50));
+			player.setFillColor(Color::Red);
+			player.setPosition(475, 475);
 			
 		}
 		
