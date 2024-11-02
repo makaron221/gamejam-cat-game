@@ -2,15 +2,17 @@
 #include <SFML/System.hpp>
 #include <SFML/Window.hpp>
 #include <vector>
-
+#include <iostream>
 using namespace sf;
 
 
 class Game
 {
 	private:
-		Texture twoodLight, twoodDarkLong;
+		Texture twoodLight, twoodDarkLong, player_walk[6], player_walk_flipped[6];
 		Font font;
+		RectangleShape player;
+		int frame=0, pmovement_vector[2]={};
 		
 		void menu_bg()
 		{
@@ -61,10 +63,33 @@ class Game
 			return 0;
 		}
 		
-		void cat_gravity(vector<int[4]> surfaces, int sprite_height)//[0]-x1 [1] y1 [2]-x2 [3] y2
+		void call_movement()
 		{
-			
+			if (Keyboard::isKeyPressed(Keyboard::A)) pmovement_vector[0]=-6;
+			else if (Keyboard::isKeyPressed(Keyboard::D)) pmovement_vector[0]=6;
+			else pmovement_vector[0]=0;
 		}
+		
+		void commit_movement() 
+		{
+			player.move(pmovement_vector[0], pmovement_vector[1]);
+			
+			if (pmovement_vector[0]!=0)
+			{
+				if (pmovement_vector[0]<0) player.setTexture(&player_walk[frame/6]);
+				else player.setTexture(&player_walk_flipped[frame/6]);
+			}
+			
+			window.draw(player);
+		}
+		
+		void count_frames()
+		{
+			frame++;
+			if (frame>29)frame=0;
+		}
+
+		
 	
 	public:
 		RenderWindow window;
@@ -76,10 +101,18 @@ class Game
 			twoodLight.loadFromFile("sprites/woodTexture.png");
 			twoodDarkLong.loadFromFile("sprites/Wooden Planks cut long.png");
 			font.loadFromFile("fonts/Minimal3x5.ttf");
-			
-			RectangleShape player(Vector2f(50, 50));
-			player.setFillColor(Color::Red);
-			player.setPosition(475, 475);
+			player_walk[0].loadFromFile("sprites/cat sprite/walk1.png");
+			player_walk[1].loadFromFile("sprites/cat sprite/walk2.png");
+			player_walk[2].loadFromFile("sprites/cat sprite/walk3.png");
+			player_walk[3].loadFromFile("sprites/cat sprite/walk4.png");
+			player_walk[4].loadFromFile("sprites/cat sprite/walk5.png");
+			player_walk[5].loadFromFile("sprites/cat sprite/walk6.png");
+			player_walk_flipped[0].loadFromFile("sprites/cat sprite/walk1-flipped.png");
+			player_walk_flipped[1].loadFromFile("sprites/cat sprite/walk2-flipped.png");
+			player_walk_flipped[2].loadFromFile("sprites/cat sprite/walk3-flipped.png");
+			player_walk_flipped[3].loadFromFile("sprites/cat sprite/walk4-flipped.png");
+			player_walk_flipped[4].loadFromFile("sprites/cat sprite/walk5-flipped.png");
+			player_walk_flipped[5].loadFromFile("sprites/cat sprite/walk6-flipped.png");
 			
 		}
 		
@@ -99,6 +132,7 @@ class Game
 				{
 				menu_bg();
 				menu_buttons();
+				stage = handle_menu_buttons(stage);
 				}
 				else if (stage==1) return;
 				else
@@ -108,8 +142,32 @@ class Game
 				}
 				
 				window.display();
+			}
+		}
+		
+		void scene1()
+		{
+			player.setSize(Vector2f(50, 50));
+//			player.setFillColor(Color::Red);
+			Texture p;
+			p.loadFromFile("sprites/cat sprite/walk2.png");
+			player.setTexture(&p);
+			while (window.isOpen())
+			{
+				Event event;
 				
-				stage = handle_menu_buttons(stage);
+				while (window.pollEvent(event))
+				{
+					if (event.type == Event::Closed || Keyboard::isKeyPressed(Keyboard::Escape))
+						window.close();
+					call_movement();
+				}
+				
+				window.clear(Color::White);
+				commit_movement();
+				window.display();
+				
+				count_frames();
 			}
 		}
 };
@@ -118,6 +176,7 @@ int main()
 {
 	Game game;
 	game.menu();
+	game.scene1();
 	return 0;
 }	
 

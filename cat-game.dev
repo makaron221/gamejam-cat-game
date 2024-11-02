@@ -1,7 +1,7 @@
 [Project]
 FileName=cat-game.dev
 Name=cat-game
-Type=0
+Type=1
 Ver=2
 ObjFiles=
 Includes=C:\SFML-2.4.0-windows-gcc-4.9.2-tdm-64-bit\SFML-2.4.0\include
