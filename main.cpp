@@ -12,7 +12,7 @@ class Game
 		Texture twoodLight, twoodDarkLong, player_walk[6], player_walk_flipped[6];
 		Font font;
 		RectangleShape player;
-		int frame=0, pmovement_vector[2]={};
+		int frame=0, pmovement_vector[2]={}, catSize[2]={50,50};
 		
 		void menu_bg()
 		{
@@ -61,6 +61,19 @@ class Game
 			if (mouse_pos.x>410 && mouse_pos.x<1510 && mouse_pos.y>290 && mouse_pos.y<490 && Mouse::isButtonPressed(Mouse::Left)) return 1;
 			if (mouse_pos.x>410 && mouse_pos.x<1510 && mouse_pos.y>590 && mouse_pos.y<790 && Mouse::isButtonPressed(Mouse::Left) || stage==2) return 2;
 			return 0;
+		}
+		
+		void cat_gravity(std::vector<std::vector<int> > surfaces)//x1,y2,x2,y2
+		{
+			if(surfaces.empty())
+				pmovement_vector[1]=10;
+			
+			for(int i = 0; i < surfaces.size(); i++){
+				if(!(player.getPosition().x > surfaces.at(i)[0] && player.getPosition().x < surfaces.at(i)[2] && player.getPosition().y + catSize[1]+1 < surfaces.at(i)[1] && player.getPosition().y + catSize[1]+1 > surfaces.at(i)[3])&& !(player.getPosition().x+catSize[0]-3 > surfaces.at(i)[0] && player.getPosition().x+catSize[0]-3  < surfaces.at(i)[2] && player.getPosition().y  + catSize[1]+1 < surfaces.at(i)[1] && player.getPosition().y  + catSize[1]+1 > surfaces.at(i)[3]))
+					pmovement_vector[1]=10;
+				else
+					pmovement_vector[1]=0;
+			}
 		}
 		
 		void call_movement()
@@ -150,6 +163,14 @@ class Game
 			player.setSize(Vector2f(50, 50));
 //			player.setFillColor(Color::Red);
 			Texture p;
+			std::vector<std::vector<int> > blocks;
+			std::vector<int> block;
+			block.push_back(500);
+			block.push_back(1080);
+			block.push_back(750);
+			block.push_back(1000);
+			blocks.push_back(block);
+			
 			p.loadFromFile("sprites/cat sprite/walk2.png");
 			player.setTexture(&p);
 			while (window.isOpen())
@@ -163,10 +184,21 @@ class Game
 					call_movement();
 				}
 				
+				
 				window.clear(Color::White);
 				commit_movement();
+				cat_gravity(blocks);
+				RectangleShape rect(Vector2f(250, 80));
+				rect.setFillColor(Color::Red);
+				rect.setPosition(500, 1000);
+				window.draw(rect);
 				window.display();
-				
+//				std::cout<<player.getPosition().x<<" ";
+//				std::cout<<player.getPosition().y<<std::endl;
+				std::cout<<block[0]<<" ";
+				std::cout<<block[1]<<" ";
+				std::cout<<block[2]<<" ";
+				std::cout<<block[3]<<std::endl;
 				count_frames();
 			}
 		}
