@@ -9,10 +9,11 @@ using namespace sf;
 class Game
 {
 	private:
-		Texture twoodLight, twoodDarkLong, player_walk[6], player_walk_flipped[6];
+		Texture twoodLight, twoodDarkLong, player_walk[6], player_walk_flipped[6], player_jump[6];
 		Font font;
 		RectangleShape player;
-		int frame=0, pmovement_vector[2]={}, catSize[2]={50,50};
+		int frame=0, pmovement_vector[2]={}, catSize[2]={75,75}, framesToJump=40;
+		bool orientation=1, jumpingNow=false;//0-left 1-right
 		
 		void menu_bg()
 		{
@@ -63,34 +64,69 @@ class Game
 			return 0;
 		}
 		
+		
+		bool isOnPlatform(std::vector<std::vector<int> > surfaces)
+		{
+			for(int i = 0; i < surfaces.size(); i++)
+				if((player.getPosition().x > surfaces.at(i)[0] && player.getPosition().x < surfaces.at(i)[2] && player.getPosition().y + catSize[1]+1 < surfaces.at(i)[1] && player.getPosition().y + catSize[1]+1 > surfaces.at(i)[3])&& (player.getPosition().x+catSize[0]-3 > surfaces.at(i)[0] && player.getPosition().x+catSize[0]-3  < surfaces.at(i)[2] && player.getPosition().y  + catSize[1]+1 < surfaces.at(i)[1] && player.getPosition().y  + catSize[1]+1 > surfaces.at(i)[3]))
+					return 1;
+			return 0;
+		}
+		
 		void cat_gravity(std::vector<std::vector<int> > surfaces)//x1,y2,x2,y2
 		{
-			if(surfaces.empty())
-				pmovement_vector[1]=10;
-			
-			for(int i = 0; i < surfaces.size(); i++){
-				if(!(player.getPosition().x > surfaces.at(i)[0] && player.getPosition().x < surfaces.at(i)[2] && player.getPosition().y + catSize[1]+1 < surfaces.at(i)[1] && player.getPosition().y + catSize[1]+1 > surfaces.at(i)[3])&& !(player.getPosition().x+catSize[0]-3 > surfaces.at(i)[0] && player.getPosition().x+catSize[0]-3  < surfaces.at(i)[2] && player.getPosition().y  + catSize[1]+1 < surfaces.at(i)[1] && player.getPosition().y  + catSize[1]+1 > surfaces.at(i)[3]))
-					pmovement_vector[1]=10;
-				else
-					pmovement_vector[1]=0;
+			if (isOnPlatform(surfaces) && !jumpingNow) pmovement_vector[1]=0;
+			else if (!isOnPlatform(surfaces) && !jumpingNow) pmovement_vector[1]=10;
+		}
+		
+		void call_movement(std::vector<std::vector<int> > surfaces)
+		{
+			if (Keyboard::isKeyPressed(Keyboard::A))
+			{
+				pmovement_vector[0]=-6;
+				orientation=false;
+			}
+			else if (Keyboard::isKeyPressed(Keyboard::D))
+			{
+				pmovement_vector[0]=6;
+				orientation=true;
+			}
+			else pmovement_vector[0]=0;
+			if (Keyboard::isKeyPressed(Keyboard::Space) && framesToJump>0 && isOnPlatform(surfaces)) 
+			{
+				pmovement_vector[1]=-15;
+				jumpingNow = true;
 			}
 		}
 		
-		void call_movement()
+		void commit_movement(std::vector<std::vector<int> > surfaces) 
 		{
-			if (Keyboard::isKeyPressed(Keyboard::A)) pmovement_vector[0]=-6;
-			else if (Keyboard::isKeyPressed(Keyboard::D)) pmovement_vector[0]=6;
-			else pmovement_vector[0]=0;
-		}
-		
-		void commit_movement() 
-		{
+			int waklIntRects[6][2]={{86,81},{85,76},{85,81},{86,81},{91,76},{91,81}};
+			cat_gravity(surfaces);
+			
+			if (framesToJump>20&&jumpingNow)framesToJump--;
+			else jumpingNow=false;
+			
+			if(isOnPlatform(surfaces)) framesToJump=40;
+			
+			if (framesToJump<30&&jumpingNow)pmovement_vector[1]=-10;
+			
 			player.move(pmovement_vector[0], pmovement_vector[1]);
 			
-			if (pmovement_vector[0]!=0)
+			if (!isOnPlatform(surfaces))
 			{
+				int index=1;
+				if (orientation)index+=3;
+				player.setTexture(&player_jump[index]);
+				player.setSize(Vector2f(catSize[0]*1.25, catSize[1]));
+				player.setTextureRect(IntRect(0, 0, 96, 81));
+			}
+			else if (pmovement_vector[0]!=0)
+			{
+				player.setSize(Vector2f(catSize[0], catSize[1]));
 				if (pmovement_vector[0]<0) player.setTexture(&player_walk[frame/6]);
 				else player.setTexture(&player_walk_flipped[frame/6]);
+				player.setTextureRect(IntRect(0, 0, waklIntRects[frame/6][0], waklIntRects[frame/6][1]));
 			}
 			
 			window.draw(player);
@@ -126,6 +162,12 @@ class Game
 			player_walk_flipped[3].loadFromFile("sprites/cat sprite/walk4-flipped.png");
 			player_walk_flipped[4].loadFromFile("sprites/cat sprite/walk5-flipped.png");
 			player_walk_flipped[5].loadFromFile("sprites/cat sprite/walk6-flipped.png");
+			player_jump[0].loadFromFile("sprites/cat sprite/jump1.png");
+			player_jump[1].loadFromFile("sprites/cat sprite/jump2.png");
+			player_jump[2].loadFromFile("sprites/cat sprite/jump3.png");
+			player_jump[3].loadFromFile("sprites/cat sprite/jump1-flipped.png");
+			player_jump[4].loadFromFile("sprites/cat sprite/jump2-flipped.png");
+			player_jump[5].loadFromFile("sprites/cat sprite/jump3-flipped.png");
 			
 		}
 		
@@ -160,8 +202,7 @@ class Game
 		
 		void scene1()
 		{
-			player.setSize(Vector2f(50, 50));
-//			player.setFillColor(Color::Red);
+			player.setSize(Vector2f(catSize[0], catSize[1]));
 			Texture p;
 			std::vector<std::vector<int> > blocks;
 			std::vector<int> block;
@@ -173,6 +214,10 @@ class Game
 			
 			p.loadFromFile("sprites/cat sprite/walk2.png");
 			player.setTexture(&p);
+			
+			RectangleShape rect(Vector2f(250, 80));
+			rect.setFillColor(Color::Red);
+			rect.setPosition(500, 1000);
 			while (window.isOpen())
 			{
 				Event event;
@@ -181,24 +226,16 @@ class Game
 				{
 					if (event.type == Event::Closed || Keyboard::isKeyPressed(Keyboard::Escape))
 						window.close();
-					call_movement();
+					call_movement(blocks);
 				}
 				
 				
 				window.clear(Color::White);
-				commit_movement();
-				cat_gravity(blocks);
-				RectangleShape rect(Vector2f(250, 80));
-				rect.setFillColor(Color::Red);
-				rect.setPosition(500, 1000);
 				window.draw(rect);
+				
+				commit_movement(blocks);
+				
 				window.display();
-//				std::cout<<player.getPosition().x<<" ";
-//				std::cout<<player.getPosition().y<<std::endl;
-				std::cout<<block[0]<<" ";
-				std::cout<<block[1]<<" ";
-				std::cout<<block[2]<<" ";
-				std::cout<<block[3]<<std::endl;
 				count_frames();
 			}
 		}
